@@ -2,7 +2,7 @@
   <div>
     <PageHeaad title="知识文章">
         <template #buttons>
-            <el-button type="primary">新增</el-button>
+            <el-button @click="dialogVisible = true" type="primary">新增</el-button>
         </template>
     </PageHeaad>
     <TableSearch :formItem="formItem" @search="handleSearch"/>
@@ -35,7 +35,14 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-pagination
+      style="margin-top: 25px"
+      :page-size="pagination.size"
+      laayout="prev,pager,next"
+      :total="pagination.total"
+      @change="handleChange" />
   </div>
+  <ArticleDialog v-model:modelValue="dialogVisible" :categories="categoryOptions" />
 </template>
 
 <script setup>
@@ -43,6 +50,7 @@ import { ref, onMounted, reactive } from 'vue'
 import PageHeaad from '@/components/PageHeaad.vue'
 import TableSearch from '@/components/TableSearch.vue'
 import { categoryTree,articlePage } from '@/api/admin'
+import ArticleDialog from '@/components/ArticleDialog.vue'
 
 const formItem = [
   {comp:'input',label:'文章标题',prop:'title',placeholder:'请输入文章标题'},
@@ -74,6 +82,12 @@ const handleSearch = async (formData) => {
   }
   const {records,total} = await articlePage(params)
   tableData.value = records
+  pagination.total = total
+}
+
+const handleChange = (page) => {
+  pagination.currentPage = page
+  handleSearch()
 }
 
 // 分类映射
@@ -82,6 +96,9 @@ const categoryMap = reactive({})
 const categoryOptions = ref([])
 // 表格数据
 const tableData = ref([])
+
+// 新增和编辑
+const dialogVisible = ref(false)
 
 onMounted(async () => {
     const data = await categoryTree()
